@@ -1,6 +1,6 @@
 package com.kb.board.dto;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,6 +19,6 @@ public class BoardReply {
 	private String memberName;
 	private String content;
 	private String status;
-	private Date createDate;
-	private Date modifyDate;
+	private LocalDateTime createDate;
+	private LocalDateTime modifyDate;
 }

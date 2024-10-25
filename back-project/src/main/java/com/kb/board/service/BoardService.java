@@ -17,10 +17,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Log4j
 @Service
@@ -98,7 +96,7 @@ public class BoardService {
     @Transactional(rollbackFor = Exception.class)
     public BoardPost createBoardPost(BoardPost boardPost, List<MultipartFile> files) {
         // 먼저 authorId 가져오기
-        String authorId = mapper.getAuthorIdByMno(boardPost.getMemberId());
+        String authorId = mapper.getAuthorIdByMno(boardPost.getMno());
         boardPost.setAuthorId(authorId);
 
         // createdDate를 현재 시간으로 설정
@@ -203,15 +201,6 @@ public class BoardService {
         return mapper.deleteAttachFile(fno) == 1;
     }
 
-//    public BoardReply createReply(long postId, BoardReply reply) {
-//        int result = mapper.insertReply(postId, reply);
-//        if (result != 1) {
-//            throw new RuntimeException("Failed to insert reply");
-//        }
-//        reply = mapper.selectReplyByRno(reply.getRno());
-//        return reply;
-//    }
-
     public BoardReply getReply(int rno) {
         return mapper.selectReplyByRno(rno);
     }
@@ -220,21 +209,30 @@ public class BoardService {
         return mapper.deleteReply(rno);
     }
 
-    public boolean checkLikeExists(int postId, int mno) {
-        return mapper.checkLikeExists(postId, mno);
+    public boolean checkLikeExists(Long postId, int mno) {
+        int count = mapper.checkLikeExists(postId, mno);
+        return count > 0;
     }
 
     @Transactional
-    public void addLike(int postId, int memberId) {
+    public void addLike(Long postId, int memberId) {
         mapper.insertLike(postId, memberId); // likes 테이블에 레코드 추가
+        mapper.incrementLikesCount(postId);  // likes_count 증가
     }
 
-    public BoardPost getPostWithLikesCount(int postId) {
+    public BoardPost getPostWithLikesCount(Long postId) {
         BoardPost post = mapper.getBoardPost(postId);
         int likesCount = mapper.countLikes(postId); // likes 테이블에서 좋아요 수 계산
         post.setLikesCount(likesCount);
         return post;
     }
+
+
+
+//    @Transactional(readOnly = true)
+//    public int getLikesCount(Long postId) {
+//        return mapper.countLikes(postId); // likes 테이블에서 좋아요 수 계산
+//    }
 
     public List<BoardPost> mySelectPostList(String memberId) {
         List<BoardPost> boardList = mapper.mySelectPostList(memberId);
@@ -246,11 +244,25 @@ public class BoardService {
         return replyList;
     }
 
-    public void createReply(long postId, BoardReply reply, Member member) {
-        // reply 객체에 postId를 설정
-        reply.setPostId(postId); // reply에 postId를 설정
-        reply.setMemberId(member.getId()); // reply 객체에 memberId를 설정
-        reply.setMno(member.getMno()); // 만약 memberId와 mno가 다르다면, 각 필드에 맞게 설정해야 함
-        mapper.insertReply(reply); // reply 객체만 전달
+    public BoardReply createReply(long postId, BoardReply reply, Member member) {
+        // reply 객체에 postId, memberId, mno, createDate, modifyDate를 설정
+        reply.setPostId(postId);
+        reply.setMemberId(member.getId());
+        reply.setMno(member.getMno());
+
+        // 현재 시간을 설정 (java.time.LocalDateTime 사용 예)
+        LocalDateTime now = LocalDateTime.now();
+        reply.setCreateDate(now);
+        reply.setModifyDate(now);
+
+        // 댓글을 데이터베이스에 삽입
+        mapper.insertReply(reply); // 이 시점에서 reply.rno가 자동으로 설정됨
+
+        return reply; // 생성된 댓글 객체 반환
     }
+
+
+
+
+
 }

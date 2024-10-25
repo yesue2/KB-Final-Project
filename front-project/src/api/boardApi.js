@@ -10,19 +10,36 @@ export default {
         console.log('BOARD GET LIST: ', data);
         return data;
     },
+
+
     // async createReply(postId, replyDTO) {
     //     const { data } = await api.get(`/api/board/replyPlus/${postId}`, replyDTO);
     //     return data;
     // },
 
-    async likePost(postId) {
-        const { data } = await api.post(`${BASE_URL}/${postId}/like`);
-        return data; // 성공 시 응답 데이터 반환
-    },
+    likePost(postId) {
+        return api.post(`/api/board/${postId}/like`, {}, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('authToken')}`, // 적절한 토큰 설정
+          },
+        });
+      },
 
     async getReplies(postId) {
-        const { data } = await api.get(`${BASE_URL}/reply/${postId}`); // 댓글 API 엔드포인트
+        const { data } = await api.get(`${BASE_URL}/reply/${postId}`);
+        
+        // 날짜 배열을 Date 객체로 변환
+        data.forEach(reply => {
+            reply.createDate = new Date(...reply.createDate);
+            reply.modifyDate = new Date(...reply.modifyDate);
+        });
+    
         return data;
+    },
+    
+    
+    async addReply(postId, replyData){
+        return await api.post(`/api/board/replyPlus/${postId}`, replyData);
     },
 
 

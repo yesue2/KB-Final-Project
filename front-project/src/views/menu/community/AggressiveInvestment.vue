@@ -1,7 +1,7 @@
 <script setup>
-import {ref, onMounted, computed} from "vue";
+import { ref, onMounted, computed } from "vue";
 import axios from "axios";
-import {useAuthStore} from "@/stores/auth";
+import { useAuthStore } from "@/stores/auth";
 import api from '@/api/boardApi';
 
 const postType = ref(4); // 게시판 타입 (예: 1: 안정형)
@@ -10,7 +10,8 @@ const visibleCount = ref(5); // 보여질 게시글 수
 const newReply = ref({}); // 댓글 입력을 위한 ref
 const postRefs = ref([]); // hidden input 참조 배열
 const replies = ref({}); // 각 게시글의 댓글을 저장할 객체
-
+const editPost = ref({ title: '', content: '' }); // 수정할 게시글을 위한 ref, 초기화
+const isModalOpen = ref(false); // 모달 열림 상태를 위한 ref
 
 const props = defineProps({ username: String });
 
@@ -20,7 +21,7 @@ const auth = useAuthStore();
 // 게시글 목록을 가져오는 함수
 const fetchReplies = async (postId) => {
   try {
-    const response = await api.getReplies(postId); // 각 ID에 대해 개별적으로 요청
+    const response = await api.getReplies(postId);
     replies.value[postId] = response; // 댓글 목록을 postId를 키로 하는 객체에 저장
   } catch (error) {
     console.error("Error fetching replies:", error);
@@ -32,11 +33,9 @@ const fetchBoardPosts = async () => {
   try {
     const response = await axios.get(`/api/board/${postType.value}/posts`);
     posts.value = response.data.postList;
-    // 게시글 목록을 가져온 후 각 게시글의 postId에 대해 fetchReplies 호출
     for (const post of posts.value) {
-      await fetchReplies(post.postId); // 각 ID에 대해 개별적으로 댓글 가져오기
+      await fetchReplies(post.postId);
     }
-
     console.log("Fetched posts:", posts.value);
   } catch (error) {
     console.error("Error fetching posts:", error);
@@ -90,39 +89,28 @@ const handleLike = async (index) => {
   }
 };
 
-// const handleReply = async (index) => {
-//   const token = localStorage.getItem('token');
-//   try {
-//     const requestBody = {
-//       postId: posts.value[index].postId,
-//       writer: auth.userId,
-//       content: newReply.value[index],
-//     };
-//     // Changed to POST for submitting replies
-//     const response = await axios.post(`/api/board/replyPlus/${posts.value[index].postId}`, requestBody, {
-//       headers: {
-//         Authorization: `Bearer ${token}`, // Authorization 헤더에 JWT 토큰 추가
-//       },
-//     })
-//     newReply.value[posts.value[index].postId] = ""; // Clear the reply input
-//   } catch (error) {
-//     console.error("Error adding reply:", error);
-//   }
-// };
+// 게시글 수정 모달 열기
+const openEditModal = (index) => {
+  const post = posts.value[index];
+  editPost.value = { postId: post.postId, title: post.title, content: post.content }; // 선택한 게시글의 데이터로 초기화
+  isModalOpen.value = true; // 모달 열기
+};
 
+// 게시글 수정
+const updatePost = async () => {
+  try {
+    await api.updatePost(editPost.value.postId, editPost.value); // 수정된 게시글 데이터 전송
+    isModalOpen.value = false; // 모달 닫기
+    await reloadPosts(); // 게시글 목록 새로 고침
+  } catch (error) {
+    console.error("Error updating post:", error);
+  }
+};
 
-// const handleReply = async (postId) => {
-//   if (!newReply.value[postId] || newReply.value[postId].trim() === "") return; // 댓글 내용이 비어있으면 리턴
-//   try {
-//     const response = await api.createReply(postId, { content: newReply.value[postId] }); // API 호출
-//     replies.value[postId].push(response); // 새 댓글을 해당 게시글의 댓글 목록에 추가
-//     newReply.value[postId] = ""; // 해당 게시글의 댓글 입력 필드 초기화
-//   } catch (error) {
-//     console.error("Error adding reply:", error);
-//   }
-// };
+const closeEditModal = () => {
+  isModalOpen.value = false; // 모달 닫기
+};
 
-console.log('제발' + postRefs.value);
 const handleDelete = async (index) => {
   if (!confirm('삭제할까요?')) return;
 
@@ -135,7 +123,6 @@ const reloadPosts = async () => {
   await fetchBoardPosts(); // 게시글을 다시 불러오는 함수 호출
 };
 
-
 // 컴포넌트가 마운트될 때 게시글 목록을 가져옴
 onMounted(() => {
   fetchBoardPosts();
@@ -145,9 +132,9 @@ onMounted(() => {
 <template>
   <div class="bc">
     <div
-        v-for="(post, index) in visiblePosts"
-        :key="post.postId"
-        class="feeds card mb-5 mb-xxl-8"
+      v-for="(post, index) in visiblePosts"
+      :key="post.postId"
+      class="feeds card mb-5 mb-xxl-8"
     >
       <div class="card-body pb-0">
         <div class="d-flex align-items-center">
@@ -165,19 +152,19 @@ onMounted(() => {
           <template v-if="auth.id == post.authorId">
             <div class="optionBtn text-end">
               <button
-                  type="button"
-                  class="btn btn-secondary btn-icon"
-                  aria-label="Edit"
-                  @click="handleReply(index)"
+                type="button"
+                class="btn btn-secondary btn-icon"
+                aria-label="Edit"
+                @click="openEditModal(index)"
               >
                 <i class="ai-edit-alt"></i>
               </button>
 
               <button
-                  type="button"
-                  class="btn btn-outline-danger btn-icon"
-                  aria-label="Delete"
-                  @click="handleDelete(index)"
+                type="button"
+                class="btn btn-outline-danger btn-icon"
+                aria-label="Delete"
+                @click="handleDelete(index)"
               >
                 <i class="ai-trash"></i>
               </button>
@@ -188,9 +175,9 @@ onMounted(() => {
           <div v-if="post.boardAttachFileList && post.boardAttachFileList.length > 0">
             <div v-for="attachment in post.boardAttachFileList" :key="attachment.postId" class="mb-3">
               <img
-                  :src="`/api/board/file/${encodeURIComponent(attachment.renamedFilename)}`"
-                  alt="Post Image"
-                  class="post-image"
+                :src="`/api/board/file/${encodeURIComponent(attachment.renamedFilename)}`"
+                alt="Post Image"
+                class="post-image"
               />
             </div>
           </div>
@@ -200,8 +187,8 @@ onMounted(() => {
               <i class="ai-message fs-2"></i>{{ post.commentCount }}
             </a>
             <a
-                class="btn btn-sm btn-color-muted btn-active-light-danger fw-bold fs-6 py-1 px-2"
-                @click="handleLike(index)"
+              class="btn btn-sm btn-color-muted btn-active-light-danger fw-bold fs-6 py-1 px-2"
+              @click="handleLike(index)"
             >
               <i class="ai-heart fs-2"></i>{{ post.likesCount }}
             </a>
@@ -218,10 +205,10 @@ onMounted(() => {
         <!-- 댓글 입력란 -->
         <form class="reply position-relative pb-3" @submit.prevent="handleReply(index)">
           <input
-              v-model="newReply[index]"
-              data-kt-autosize="true"
-              class="form-control border-0 p-0 pe-10 resize-none min-h-25px"
-              placeholder="댓글"
+            v-model="newReply[index]"
+            data-kt-autosize="true"
+            class="form-control border-0 p-0 pe-10 resize-none min-h-25px"
+            placeholder="댓글"
           />
           <div class="position-absolute top-0 end-0 me-n5">
             <button class="btn btn-icon btn-sm btn-active-color-primary ps-0" type="submit">
@@ -231,18 +218,32 @@ onMounted(() => {
         </form>
       </div>
     </div>
+
+    <!-- 모달 -->
+    <div v-if="isModalOpen" class="modal">
+      <div class="modal-content">
+        <span class="close" @click="closeEditModal">&times;</span>
+        <h2>게시글 수정</h2>
+        <form @submit.prevent="updatePost">
+          <div>
+            <label for="title">제목:</label>
+            <input type="text" v-model="editPost.title" required />
+          </div>
+          <div>
+            <label for="content">내용:</label>
+            <textarea v-model="editPost.content" required></textarea>
+          </div>
+          <button class="modal-button" type="submit">수정</button>
+        </form>
+      </div>
+    </div>
+
+    <button @click="loadMore" v-if="!allPostsLoaded">더 보기</button>
   </div>
-  <button v-if="!allPostsLoaded" class="moreBtn text-center" @click="loadMore">
-    <span class="indicator-label">더보기</span>
-    <span class="indicator-progress">Loading...
-      <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
-    </span>
-  </button>
-  <input type="hidden" :value="postType"/>
 </template>
 
 <style scoped>
-.bc{
+.bc {
   font-family: J3;
 }
 .reply {
@@ -305,14 +306,95 @@ onMounted(() => {
 }
 
 .replies {
-
   margin-top: 20px; /* 댓글 목록 상단 여백 추가 */
 }
 
 .reply {
-  display:flex;
+  display: flex;
   justify-content: space-between;
   padding: 10px; /* 댓글 여백 추가 */
   border-bottom: 1px solid lightgrey;
 }
+
+.modal {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7); /* 흐릿한 배경 */
+  z-index: 1000; /* 다른 요소들 위에 위치하도록 설정 */
+}
+
+.modal-content {
+  background-color: rgba(67, 140, 116, 1); 
+  padding: 20px;
+  border-radius: 15px; /* 모서리 둥글게 */
+  width: 450px; /* 폭 */
+  max-width: 90%; /* 모바일 대응 */
+  position: relative;
+  
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); /* 그림자 효과 */
+  transition: transform 0.3s ease, opacity 0.3s ease; /* 부드러운 애니메이션 효과 */
+}
+
+
+.modal-content>h2 {
+  color : #fff;
+}
+
+.modal-content>button {
+  color: #fff;
+  background-color: darkgreen; /* 흐릿한 배경 */
+}
+
+.modal-header {
+  font-size: 24px; /* 제목 글자 크기 */
+  margin-bottom: 15px; /* 제목 아래 여백 */
+  text-align: center; /* 가운데 정렬 */
+  color: #444; /* 제목 색상 */
+}
+
+.modal-body {
+  margin-bottom: 20px; /* 내용 아래 여백 */
+  font-size: 16px; /* 내용 글자 크기 */
+  line-height: 1.5; /* 줄 간격 조정 */
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: space-between; /* 버튼 간격 조정 */
+}
+
+.modal-button {
+  background-color: #438c74; /* 버튼 배경색 */
+  color: #fff; /* 버튼 글자색 */
+  border: none;
+  border-radius: 5px; /* 모서리 둥글게 */
+  padding: 10px 15px; /* 패딩 조정 */
+  cursor: pointer;
+  transition: background-color 0.3s ease; /* 부드러운 배경색 변경 */
+  font-size: 16px; /* 버튼 글자 크기 */
+}
+
+.modal-button:hover {
+  background-color: #367b62; /* 마우스 오버 시 색상 변경 */
+}
+
+.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+  font-size: 18px; /* 글자 크기 */
+  color: #999; /* 글자 색상 */
+}
+
+.close:hover {
+  color: #333; /* 마우스 오버 시 색상 변경 */
+}
+
 </style>

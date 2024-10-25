@@ -13,7 +13,7 @@ import java.util.Date;
 @Data
 @Builder
 public class BoardPost {
-    private long postId;
+    private Long postId;
     private int bno;
     @NotNull(message = "Title cannot be null")
     private String title;       // 제목
@@ -24,7 +24,7 @@ public class BoardPost {
     private String status;      // 상태 ('y' 또는 'n')
     private int commentCount;    // 댓글 수
     private int likesCount;     // 좋아요 수
-    private Integer memberId;      // member 테이블의 mno
+    private Integer mno;      // member 테이블의 mno
     private String authorId;     // 작성자 ID (MEMBER 테이블의 id)
     private Date createdDate;   // 생성 날짜
     private Date modifiedDate;  // 수정 날짜
@@ -34,7 +34,7 @@ public class BoardPost {
     private ArrayList<BoardReply> replyList;
     private ArrayList<BoardAttachFile> boardAttachFileList;
 
-    public static BoardPost fromDTO(BoardDTO boardDTO, Integer memberId) {
+    public static BoardPost fromDTO(BoardDTO boardDTO, Integer mno) {
         return BoardPost.builder()
                 .bno(boardDTO.getBno())
                 .title(boardDTO.getTitle())
@@ -44,7 +44,7 @@ public class BoardPost {
                 .status(boardDTO.getStatus()) // 상태는 String으로 가져옴
                 .commentCount(0) // 기본값 설정
                 .likesCount(0) // 기본값 설정
-                .memberId(memberId)
+                .mno(mno)
                 .createdDate(new Date()) // 현재 날짜로 설정
                 .modifiedDate(new Date()) // 현재 날짜로 설정
                 .build();
@@ -61,7 +61,7 @@ public class BoardPost {
                 ", status='" + status + '\'' +
                 ", commentCount=" + commentCount +
                 ", likesCount=" + likesCount +
-                ", memberId=" + memberId +
+                ", mno=" + mno +
                 ", authorId='" + authorId + '\'' + // 작성자 ID 추가
                 ", createdDate=" + createdDate +
                 ", modifiedDate=" + modifiedDate +

@@ -195,27 +195,21 @@ onMounted(async () => {
   <div v-if="showModal" class="overlay" @click="closePopup"></div>
 </template>
 
-
 <style scoped>
-.bc {
-  position: fixed;
-  padding-bottom: 375px;
-}
-
-.warnSign h6{
+.warnSign h6 {
   color: #4c4c4c;
 }
 
-a{
-  color:#0f9d58;
+a {
+  color: #0f9d58;
 }
 
 .writerBtn {
-  width: 190px;
+  width: 100%; /* 버튼 너비를 100%로 변경하여 패널에 맞춤 */
   height: 40px;
   border: none;
   border-radius: 20px;
-  font-size: 20px;
+  font-size: 18px; /* 폰트 크기 조정 */
   color: white;
   background-color: rgba(67, 140, 116, 1);
 }
@@ -226,74 +220,69 @@ a{
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.5); /* 흐린 배경 */
-  z-index: 10; /* 팝업 뒤에 위치하도록 */
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 10;
 }
 
-.writerBtn:disabled{
-  background-color: rgba(225, 225, 225, 0.5); /* 흐린 배경 */
+.writerBtn:disabled {
+  background-color: rgba(225, 225, 225, 0.5);
   color: #8f8f8f;
 }
-.writerBtn:hover{
+
+.writerBtn:hover {
   background-color: rgba(67, 140, 116, 0.31);
   color: rgba(67, 140, 116, 1);
 }
 
 .propensity {
-  width: 180px;
+  width: 100%; /* 성향 버튼 너비를 100%로 변경 */
   padding: 10px;
   cursor: pointer;
-  margin: 10px;
+  margin: 5px 0; /* 수직 마진 조정 */
 }
 
-.myPage{
+.myPage {
+  width: 100%; /* 마이페이지 버튼 너비를 100%로 변경 */
   padding: 10px;
   cursor: pointer;
-  margin: 10px;
-
+  margin: 5px 0; /* 수직 마진 조정 */
 }
 
 .propensity:hover {
-  width: 180px;
   height: 50px;
   border: 1px solid rgba(67, 140, 116, 1);
   border-radius: 20px;
   padding: 10px;
-  margin: 10px;
 }
 
 .propensity.active {
-  padding: 10px;
-  width: 180px;
   height: 50px;
   border: 1px solid rgba(67, 140, 116, 1);
   border-radius: 20px;
   color: rgba(67, 140, 116, 1);
-  margin: 10px;
 }
 
-.myPage:hover{
+.myPage:hover {
   border-radius: 20px;
-  margin: 10px;
 }
-
 
 .communityPanel {
   font-family: J3;
-  width: 250px;
-  height: 630px;
+  width: 250px; /* 크기 조정 */
+  height: auto; /* 자동 높이 조정 */
   border-radius: 30px;
-  padding: 30px;
+  padding: 20px; /* 패딩 조정 */
   background-color: white;
 }
 
 .profile {
-  padding: 25px;
-  margin-top: -30px;
+  padding: 20px; /* 패딩 조정 */
+  margin-top: -20px; /* 여백 조정 */
 }
 
 .profile img {
-  width: 80px;
+  width: 70px; /* 이미지 크기 조정 */
   border-radius: 50%;
 }
 </style>
+

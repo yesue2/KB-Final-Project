@@ -23,7 +23,6 @@
         <result property="status" column="status"/>
     </resultMap>
 
-
     <resultMap type="com.kb.board.dto.BoardPost" id="boardPostResultMap">
         <id property="postId" column="post_id"/>
         <result property="bno" column="bno"/>
@@ -36,7 +35,7 @@
         <result property="type" column="type"/>
         <result property="commentCount" column="comment_count"/>
         <result property="likesCount" column="likes_count"/>
-        <result property="memberId" column="member_id"/>
+        <result property="mno" column="mno"/>
     </resultMap>
 
     <resultMap type="com.kb.board.dto.BoardAttachFile" id="boardAttachFileResultMap">
@@ -53,15 +52,13 @@
     <resultMap type="com.kb.board.dto.BoardReply" id="boardReplyResultMap">
         <result property="rno" column="rno" />
         <result property="postId" column="post_id" />
-        <result property="mno" column="member_mno" />
+        <result property="mno" column="mno" />
         <result property="memberId" column="member_id" />
-        <result property="memberName" column="name" />
         <result property="content" column="content" />
         <result property="status" column="status" />
         <result property="createDate" column="create_date" />
         <result property="modifyDate" column="modify_date" />
     </resultMap>
-
     <resultMap id="postResultMap" type="com.kb.board.dto.BoardPost">
         <result property="postId" column="post_id"/>
         <result property="title" column="title"/>
@@ -69,22 +66,18 @@
         <result property="bno" column="bno"/>
         <result property="status" column="status"/>
         <result property="type" column="type"/>
-        <result property="memberId" column="member_id"/>
-        <result property="authorId" column="author_id"/>
+        <result property="authorId" column="author_id"/> <!-- authorId는 남겨두기 -->
         <result property="readCount" column="read_count"/>
         <result property="likesCount" column="likes_count"/>
         <result property="commentCount" column="comment_count"/>
         <result property="createdDate" column="created_date"/>
         <result property="modifiedDate" column="modified_date"/>
-        <result property="name" column="name"/>
         <result property="replyContent" column="reply_content"/>
 
-
-        <!-- boardAttachFileList 매핑 추가 -->
         <collection property="boardAttachFileList" ofType="com.kb.board.dto.BoardAttachFile" column="post_id"
                     select="selectAttachFileByFno"/>
-        <!-- 필요한 다른 필드 매핑 추가 -->
     </resultMap>
+
 
     <select id="selectBoardCategory" resultMap="boardCategoryMap">
         SELECT * FROM board_category ORDER BY id;
@@ -142,7 +135,7 @@
             bp.type,
             bp.status,
             bp.comment_count,
-            bp.member_id,
+            bp.mno,
             m.id,
             m.name,
             baf.fno,
@@ -153,7 +146,7 @@
             baf.create_date
         FROM
             board_post bp
-                LEFT JOIN member m ON bp.member_id = m.mno
+                LEFT JOIN member m ON bp.mno = m.mno
                 LEFT JOIN board_attach_file baf ON bp.post_id = baf.post_id
         WHERE
             bp.bno = #{bno} AND bp.status = 'y'
@@ -173,7 +166,7 @@
             bp.type,
             bp.status,
             bp.comment_count,
-            bp.member_id,
+            bp.mno,
             m.id,
             m.name,
             baf.fno,
@@ -184,7 +177,7 @@
             baf.create_date
         FROM
             board_post bp
-                LEFT JOIN member m ON bp.member_id = m.mno
+                LEFT JOIN member m ON bp.mno = m.mno
                 LEFT JOIN board_attach_file baf ON bp.post_id = baf.post_id
         WHERE
             bp.status = 'y'
@@ -229,7 +222,7 @@
     <insert id="insertAttachFile" parameterType="com.kb.board.dto.BoardAttachFile">
         INSERT INTO BOARD_ATTACH_FILE
         (fno, post_id, original_filename, renamed_filename, content_type, size, create_date)
-        VALUES(default, #{postId}, #{originalFilename}, #{renamedFilename}, #{contentType}, ${size}, DEFAULT)
+        VALUES(default, #{postId}, #{originalFilename}, #{renamedFilename}, #{contentType}, #{size}, DEFAULT)
     </insert>
 
     <!-- 파일 삭제 -->
@@ -296,19 +289,20 @@
             bp.type AS type,
             bp.status AS status,
             bp.comment_count AS commentCount,
-            bp.member_id AS memberId
+            bp.member_id AS memberId,
+            bp.likes_count AS likesCount
         FROM board_post bp
         WHERE bp.post_id = #{postId}
         ]]>
     </select>
 
     <insert id="insertBoardPost" parameterType="com.kb.board.dto.BoardPost">
-        <selectKey keyProperty="postId" resultType="int" order="AFTER">
+        <selectKey keyProperty="postId" resultType="Long" order="AFTER">
             SELECT LAST_INSERT_ID()
         </selectKey>
         <![CDATA[
-    INSERT INTO board_post (bno, title, content, member_id, type, status, author_id, created_date)
-    VALUES (#{bno}, #{title}, #{content}, #{memberId}, #{type},
+    INSERT INTO board_post (bno, title, content, mno, type, status, author_id, created_date)
+    VALUES (#{bno}, #{title}, #{content}, #{mno}, #{type},
             COALESCE(#{status}, 'y'), #{authorId}, #{createdDate})
     ]]>
     </insert>
@@ -325,13 +319,13 @@
         ]]>
     </update>
 
-    <update id="deleteBoardPost" parameterType="int">
+    <update id="deleteBoardPost" parameterType="java.lang.Long">
         <![CDATA[
         DELETE FROM board_post WHERE post_id = #{postId}
         ]]>
     </update>
 
-    <update id="incrementLikesCount" parameterType="long">
+    <update id="incrementLikesCount" parameterType="java.lang.Long">
         UPDATE board_post SET likes_count = likes_count + 1 WHERE post_id = #{postId}
     </update>
 
@@ -360,22 +354,23 @@
     </select>
 
     <!-- 특정 게시물에 대한 사용자의 좋아요 여부 확인 -->
-    <select id="checkLikeExists" parameterType="map" resultType="boolean">
-        SELECT COUNT(*) > 0
+    <select id="checkLikeExists" parameterType="map" resultType="int">
+        SELECT COUNT(*)
         FROM likes
-        WHERE post_id = #{postId} AND member_id = #{mno}
+        WHERE post_id = #{postId} AND mno = #{mno}
     </select>
 
     <!-- 좋아요 추가 -->
-    <insert id="insertLike" parameterType="int">
-        INSERT INTO likes (post_id, member_id)
-        VALUES (#{postId}, #{mno})
+    <insert id="insertLike" parameterType="map">
+        INSERT INTO likes (post_id, mno)
+        VALUES (#{postId, jdbcType=BIGINT}, #{mno, jdbcType=INTEGER})
     </insert>
 
     <!-- 특정 게시물의 좋아요 수 계산 -->
-    <select id="countLikes" parameterType="long" resultType="int">
+    <select id="countLikes" parameterType="java.lang.Long" resultType="int">
         SELECT COUNT(*)
         FROM likes
-        WHERE post_id = #{postId}
+        WHERE post_id = #{postId, jdbcType=BIGINT}
     </select>
+
 </mapper>

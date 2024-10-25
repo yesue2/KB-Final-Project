@@ -71,20 +71,20 @@ public class BoardController {
         postParam.setBno(bno);      // 게시글 번호 추가
         BoardPostPageResult postResult = service.getPostList(postParam);
 
-        // 각 게시글에 작성자 ID 추가
-        List<BoardPost> postsWithAuthors = postResult.getPostList().stream()
+        // 각 게시글에 좋아요 수 및 작성자 ID 추가
+        List<BoardPost> postsWithAuthorsAndLikes = postResult.getPostList().stream()
                 .map(post -> {
-                    Member member = memberService.findByMno((int) post.getMemberId()); // memberId로 Member 조회
-                    post.setAuthorId(member.getId()); // 작성자 ID 설정
-                    return post; // 수정된 BoardPost 객체 반환
+                    BoardPost detailedPost = service.getPostWithLikesCount(post.getPostId()); // 좋아요 수 포함
+                    Member member = memberService.findByMno((int) detailedPost.getMno()); // mno로 Member 조회
+                    detailedPost.setAuthorId(member.getId()); // 작성자 ID 설정
+                    return detailedPost; // 수정된 BoardPost 객체 반환
                 })
                 .collect(Collectors.toList());
 
-        postResult.setPostList(postsWithAuthors); // 수정된 리스트 업데이트
+        postResult.setPostList(postsWithAuthorsAndLikes); // 수정된 리스트 업데이트
 
         return ResponseEntity.ok(postResult);
     }
-
 
 //    @GetMapping("/{postId}") // 게시글 조회
 //    public ResponseEntity<BoardPost> getById(@PathVariable long postId) {
@@ -137,7 +137,7 @@ public class BoardController {
         boardDTO.setType(type);
 
         BoardPost boardPost = boardDTO.toBoardPost(); // DTO를 게시글 객체로 변환
-        boardPost.setMemberId(principal.getMno());
+        boardPost.setMno(principal.getMno());
         boardPost.setAuthorId(String.format("%d", principal.getMno()));
 
         log.info("Creating boardPost with bno: " + boardPost.getPostId());
@@ -152,8 +152,8 @@ public class BoardController {
     }
 
     @PutMapping("/{postId}")
-    public ResponseEntity<BoardPost> update(@PathVariable int postId,
-                                            BoardDTO boardDTO,
+    public ResponseEntity<BoardPost> update(@PathVariable Long postId,
+                                            @RequestBody BoardDTO boardDTO,
                                             @RequestParam(name = "files", required = false) List<MultipartFile> files) {
         try {
             BoardPost boardPost = boardDTO.toBoardPost();
@@ -206,7 +206,7 @@ public class BoardController {
 
     // 좋아요 버튼
     @PostMapping("/{postId}/like")
-    public ResponseEntity<BoardPost> likePost(@PathVariable int postId, @AuthenticationPrincipal Member principal) {
+    public ResponseEntity<BoardPost> likePost(@PathVariable Long postId, @AuthenticationPrincipal Member principal) {
 
         int mno = principal.getMno();
         // 사용자가 이미 좋아요를 눌렀는지 확인
@@ -219,8 +219,17 @@ public class BoardController {
 
         BoardPost updatedPost = boardService.getPostWithLikesCount(postId);
         return ResponseEntity.ok(updatedPost);
-
     }
+
+
+    // 좋아요 수 가져오기
+//    @GetMapping("/{postId}/likes")
+//    public ResponseEntity<Integer> getLikesCount(@PathVariable Long postId) {
+//        int likesCount = boardService.getLikesCount(postId);
+//        return ResponseEntity.ok(likesCount);
+//    }
+
+
 
 
 //
@@ -238,14 +247,15 @@ public class BoardController {
 
 
     @PostMapping("/replyPlus/{postId}")
-    public void makeReply(
+    public ResponseEntity<BoardReply> makeReply(
             @PathVariable long postId,
             @RequestBody BoardReply reply,
             @AuthenticationPrincipal Member member) throws Exception {
 
-        // 댓글 생성 로직 처리
-        service.createReply(postId, reply, member);
+        BoardReply createdReply = service.createReply(postId, reply, member);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdReply);
     }
+
 
     @DeleteMapping("/reply/{rno}")
     public ResponseEntity<BoardReply> deleteReply(
