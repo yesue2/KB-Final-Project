@@ -1,6 +1,7 @@
 # 📈 iNVeTI
 - KB국민은행에서 주관한 KB IT's Your Life 교육과정에서 진행한 금융 웹프로젝트
-![image](https://github.com/user-attachments/assets/2e3b5b73-7cba-4d86-b4f0-2330a6551328)
+![image](https://github.com/user-attachments/assets/c10bb112-2a17-45ac-8202-745e2b7f268d)
+
 
 ### iNVeTI
 : 투자 입문자들을 위한 통합된 금융 정보와 각 성향에 맞춘 투자 상품 제공
@@ -19,7 +20,8 @@
 
 
 ## 🛠 기술 스택
-![image](https://github.com/user-attachments/assets/cbe3a4b5-2c42-45e9-9e4b-4ce4c1c61df4)
+![image](https://github.com/user-attachments/assets/013f2f88-d64e-4cc3-88b9-c09d2405c628)
+
 
 
 ## 💡 구현 설명
@@ -40,21 +42,13 @@
 - [ ] 카카오 로그인 수정
 
 ## 📱 실행 화면
-![image](https://github.com/user-attachments/assets/cc2e66ab-69ad-4020-b67d-9a97376ef11c)
-![image](https://github.com/user-attachments/assets/4e5239f6-6bf6-45d0-9c58-890244bfe635)
-![image](https://github.com/user-attachments/assets/fe639ebc-8f63-4a1a-b6ac-fe2f7ae5218f)
-![image](https://github.com/user-attachments/assets/95e5fa83-7671-4920-b966-f5e7fb51ae0c)
-![image](https://github.com/user-attachments/assets/d89dbbf6-68f9-4227-ae49-b9d8968514d4)
-![image](https://github.com/user-attachments/assets/301ff5c0-bcca-4278-88df-9c3c439683f0)
-![image](https://github.com/user-attachments/assets/69f72fde-87f1-4818-b29e-d5c82849f276)
-![image](https://github.com/user-attachments/assets/197bf004-db96-4a7c-a42d-65060729f911)
-![image](https://github.com/user-attachments/assets/f81a9db7-07c6-4c42-8124-bd90bcb7acf5)
-![image](https://github.com/user-attachments/assets/b7563208-c9aa-4c6d-94e4-0cfbbea01b57)
-
-
-
-
-
-
-
-
+![image](https://github.com/user-attachments/assets/c11f8d59-708a-4323-8239-e0f4669107fa)
+![image](https://github.com/user-attachments/assets/7b65f493-9119-4c31-b242-52b76515725a)
+![image](https://github.com/user-attachments/assets/04887aec-dab0-45be-973f-20959bf8d6a3)
+![image](https://github.com/user-attachments/assets/806f4f75-ee59-48b0-b6dd-74262da4baf3)
+![image](https://github.com/user-attachments/assets/b78d1f53-8f24-48a6-9334-cf82efc7831f)
+![image](https://github.com/user-attachments/assets/1790b8c8-5740-4944-9795-fbdb87801e49)
+![image](https://github.com/user-attachments/assets/6e1db672-46a7-41cb-a8f4-ec288110ecbe)
+![image](https://github.com/user-attachments/assets/4d6c6af3-c43c-4db9-9139-76b67dbae3b1)
+![image](https://github.com/user-attachments/assets/260eb53d-06ed-4d6e-990b-9f15aa054014)
+![image](https://github.com/user-attachments/assets/a4c0f549-ef12-45a4-8cda-6b43ad17dae2)
